@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http.response import HttpResponse, JsonResponse
+from django.http.response import HttpResponse
 
 from . models import myuploadfile
 
@@ -20,7 +20,7 @@ from pdfminer.pdfparser import PDFParser
 import glob
 import os
 
-from django.views.decorators.csrf import ensure_csrf_cookie #csrf_exempt
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 
 from pdf.serializers import MyUploadFileSerializer
@@ -28,8 +28,7 @@ from pdf.serializers import MyUploadFileSerializer
 def home(request):
     return render(request, "index.html",)
 
-# @csrf_exempt
-@ensure_csrf_cookie
+@csrf_exempt
 def Upload(request):
     if request.method == "POST":
 
@@ -38,17 +37,11 @@ def Upload(request):
             os.remove("media"+'/'+files[i])
         
         myfile = request.FILES.getlist("files")
-        # myfile = JSONParser().parse(request.FILES.getlist("files"))
-        # file_serializer = MyUploadFileSerializer(data=myfile)
-        
-        # print("file_serialize == ", file_serializer)
-        # myfile = request.FILES.getlist("files")
 
         for f in myfile:
             myuploadfile(myfiles=f).save()
         dossier = glob.glob("media/*")
         
-        resultat = []
         for j in dossier:
             
             output_string = StringIO()
@@ -74,16 +67,14 @@ def Upload(request):
                     if text[1]=='NNP':
                         table_mot.append(text[0])
 
+
                 m=NameDatasetV1()
                 mot_cherche = []
                 for tbl in table_mot:
                     if m.search_first_name(tbl):
                         mot_cherche.append(tbl)
-
                 print("mot_cherche  ", mot_cherche)
-                resultat.append(mot_cherche)
-        return JsonResponse(resultat, safe=False)
-        # return render(request,'index.html')
+        return render(request,'index.html')
         
 
 
